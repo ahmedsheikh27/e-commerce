@@ -52,8 +52,6 @@ const CheckOut = () => {
         const cartId = sessionStorage.getItem('cartId');
         const totalPrice = calculateTotalPrice();
         if (!order) {
-            sessionStorage.removeItem('cartId')
-            router.push('/products')
             try {
                 const orderedCart = await createOrder({ cartId, email, totalPrice });
                 setOrder(orderedCart)
@@ -67,11 +65,7 @@ const CheckOut = () => {
             router.push('/products')
         }
     };
-    const cartId = cart.id
-
-    if (!cartId) {
-        router.push('/products')
-    }
+    // 
     // if (loading) return <p>Loading cart details...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
 
