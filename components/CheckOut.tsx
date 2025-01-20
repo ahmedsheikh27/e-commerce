@@ -70,12 +70,6 @@ const CheckOut = () => {
         }
     };
 
-
-
-    if (!cart || !cart.orderItem || cart.orderItem.length === 0) {
-       router.push('/products')
-    }
-    if (loading) return <p>Loading cart details...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
 
 
