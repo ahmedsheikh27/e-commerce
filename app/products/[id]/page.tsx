@@ -145,7 +145,6 @@ export default function ProductDetails() {
           >
             {loading ? 'Adding...' : 'Add to Cart'}
           </button>
-          <p>{cart.id}</p>
         </div>
       </div>
     </div>
