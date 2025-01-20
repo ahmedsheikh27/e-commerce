@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { createCart, fetchProductByID } from '@/lib/hygraph';
+import { useParams, useRouter } from 'next/navigation';
+import { addToCart, createCart, fetchProductByID } from '@/lib/hygraph';
 import { FaArrowLeft } from 'react-icons/fa';
 
 export default function ProductDetails() {
-  const { id } = useParams(); 
+  const router = useRouter();
+  const { id } = useParams();
   console.log("Route Parameter ID:", id);
 
   const [product, setProduct] = useState<any>(null);
-  const [quantity, setQuantity] = useState(1); 
+  const [quantity, setQuantity] = useState<any>(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<any>(null);
+  const [cart, setCart] = useState<any>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,30 +30,50 @@ export default function ProductDetails() {
       fetchData();
     }
   }, [id]);
+  useEffect(() => {
+    if (cart?.id) {
+      sessionStorage.setItem('cartId', cart.id);
+    }
+  }, [cart?.id]);
+
 
   const handleAddToCart = async () => {
     setLoading(true);
     setError(null);
-  
+    const cartId = sessionStorage.getItem('cartId') || cart?.id;
+
     try {
-      const variables = {
-        productId: product.id,
-        quantity: parseInt(quantity),
-        price: product.price,
-        totalPrice: product.price * quantity,
-      };
-      console.log("Variables sent to createCart:", variables);
-  
-      const cart = await createCart(variables);
-      console.log("Cart created successfully:", cart);
+      if (!cartId) {
+        // Create a new cart
+        const variables = {
+          productId: product.id,
+          quantity: parseInt(quantity, 10),
+          price: product.price,
+          totalPrice: product.price * quantity,
+        };
+        console.log("Creating new cart with variables:", variables);
+        const newCart = await createCart(variables);
+        setCart(newCart);
+      } else {
+        // Update the existing cart
+        const variables = {
+          cartId:cartId,
+          productId: product.id,
+          quantity: parseInt(quantity, 10),
+          price: product.price, 
+          totalPrice: cart?.totalPrice + (product.price * quantity) || product.price * quantity,
+        };
+        console.log("Updating cart with variables:", variables);
+        const updatedCart = await addToCart(variables);
+        setCart(updatedCart);
+      }
     } catch (err) {
-      console.error("Error adding to cart:", JSON.stringify(err, null, 2));
-      setError("Failed to add product to cart. Please try again.");
+      console.error("ApolloError details:", err);
+      setError('Failed to handle cart operation. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-  
 
   if (!id) {
     return <p>Product ID is missing. Please check the URL.</p>;
@@ -74,7 +96,7 @@ export default function ProductDetails() {
         <FaArrowLeft
           size={30}
           className="text-gray-500 group-hover:text-black cursor-pointer transition"
-          onClick={() => (window.location.href = '/products')}
+          onClick={() => router.push('/products')}
         />
       </div>
 
@@ -93,7 +115,7 @@ export default function ProductDetails() {
           <h1 className="text-4xl font-bold text-gray-800">{product.name}</h1>
           <p className="mt-6 text-gray-600">{product.description}</p>
           <p className="text-2xl font-semibold text-green-600 mt-4">
-            ${(product.price * quantity).toFixed(2)} 
+            ${(product.price * quantity).toFixed(2)}
           </p>
 
           {/* Quantity Selector */}
@@ -123,6 +145,7 @@ export default function ProductDetails() {
           >
             {loading ? 'Adding...' : 'Add to Cart'}
           </button>
+          <p>{cart.id}</p>
         </div>
       </div>
     </div>

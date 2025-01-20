@@ -1,155 +1,86 @@
-// 'use client'
-// import { createCart } from '@/lib/hygraph'
-// import React, { use, useEffect, useState } from 'react'
-// import ProductDetails from '../products/[id]/page'
+'use client'
+import React, { useEffect, useState } from "react";
+import { fetchCartById } from "@/lib/hygraph";
+import Link from "next/link";
+import CartItems from "@/components/CartItems";
+// import CheckoutPage from "../checkout/page";
 
-// const CartPage = () => {
-
-
-// const [cart, setCart] = useState([])
-// const [total, setTotal] = useState(0)
-// const [loading, setLoading] = useState(true)
-// const [error, setError] = useState(null)
-// const [quantity, setQuantity] = useState(Number(''))
-// // const [cartId, setCartId] = useState(null)
-
-
-// const fetchCart = async () => { 
-//   try {
-//     const data = await  createCart()
-//     setCart(data.cart)
-//     setTotal(data.total)
-//     setLoading(false)
-//   } catch (error) {
-//     setError(error)
-//     setLoading(false)
-//   }
-// }
-// useEffect(() => { 
-//   fetchCart()
-// }, [])
-
-// if (error) return <p>Error: {error}</p>;
-// if (!product) return <p>Loading...</p>;
-
-// // const handleAdd = async (productId, price) => {
-// //   try {
-// //     await createCart(productId, price, quantity)
-// //     fetchCart()
-// //   } catch (error) {
-// //     setError(error)
-// //   }
-// // }
-// // const handleRemove = async (productId) => { 
-// //   try {
-// //     await removeProduct(productId)
-// //     fetchCart()
-// //   } catch (error) {
-// //     setError(error)
-// //   }
-// // }
-
-// // const handleQuantityChange = (e) => { 
-// //   setQuantity(e.target.value)
-// // }
-// // const handleCheckout = async () => {  
-// //   try {
-// //     await checkoutCart()
-// //     fetchCart()
-// //   } catch (error) {
-// //     setError(error)
-// //   }
-// // }
-// // const handleClearCart = async () => { 
-// //   try {
-// //     await clearCart()
-// //     fetchCart()
-// //   } catch (error) {
-// //     setError(error)
-// //   }
-// // }
-// // const handleCreateCart = async () => {
-// //   try {
-// //     await createCart()
-// //     fetchCart()
-// //   } catch (error) {
-// //     setError(error)
-// //   }
-// // }
-// // useEffect(() => {      
-// //   fetchCart()
-
-// // }, [])
-// // if (loading) return <p>Loading...</p>
-// // if (error) return <p>{error}</p>
-// // return (
-// //   <div>
-// //     <h1>Cart</h1>
-// //     <div>
-// //       {cart.map((item) => (
-// //         <div key={item.id}>
-// //           <div>{item.name}</div>
-// //           <div>{item.price}</div>
-// //           <div>{item.quantity}</div>
-// //           <button onClick={() => handleRemove(item.id)}>Remove</button>
-// //         </div>
-// //       ))}
-// //     </div>
-
-// //     <div>
-// //       <div>Total: {total}</div>
-// //       <button onClick={handleCheckout}>Checkout</button>
-// //       <button onClick={handleClearCart}>Clear Cart</button>
-// //     </div>
-// //   </div>
-// // )
-// // }
-// // export default CartPage
-// // import React, { useState } from 'react'
-// // import { createCart } from '@/lib/hygraph'
-// // const CartPage = () => {
+function Cart() {
+  const [cart, setCart] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<any>(null);
 
 
 
+  useEffect(() => {
+    async function getCart() {
+      const cartId = sessionStorage.getItem("cartId");
+      if (!cartId) {
+        console.log('NO cart Id found')
+        return
+      }
+      try {
+        const fetchedCart: any = await fetchCartById(cartId);
+        setCart(fetchedCart);
+        console.log("Cart fetched successfully:", fetchedCart);
+        setLoading(false)
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+        setError(error)
+      } finally {
+        setLoading(false);
+      }
+    }
+    getCart();
+  }, []);
 
-//   // const [cart, setCart] = useState([])
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
-//   // const cart = [
-//   //   {
-//   //     id: 1,
-//   //     name: 'Product 1',
-//   //     price: 100,
-//   //     quantity: 1
-//   //   },
-//   //   {
-//   //     id: 2,
-//   //     name: 'Product 2',
-//   //     price: 200,
-//   //     quantity: 2
-//   //   }
-//   // ]
-//   //  const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
-//   // const handleRemove = (id) => { }
+  if (error) return <p className="text-red-500">{error}</p>
+  const cartId = cart.id;
 
-//   return (
-//     <div>
-//       {cart.map((item:any) => (
-//        <ProductDetails key={item.id} cartProduct={item} />
-//       ))}
-//     </div>
-//   )
-// }
+  if (!cartId || !cart || !cart.orderItem || cart.orderItem.length === 0) {
+    return <p>No items in the cart.</p>;
+  }
 
-// export default CartPage
-
-
-
-import React from 'react'
-
-const page = () => {
   return (
-    <div>page</div>
-  )
+
+    <div>
+      <h1>Your Cart</h1>
+      <div>
+        {cart.orderItem.map((item: any, index: number) => (
+          <CartItems key={index} item={item} />
+        ))}
+      </div>
+      {/* Total Price */}
+      <div className="flex flex-col items-end mb-3 mr-5">
+        <span className="text-gray-700">Sub total</span>
+        <span className="text-xl font-bold text-indigo-600">
+          $
+          {cart.orderItem.reduce(
+            (total: number, item: any) =>
+              total + item.orderItemProduct.price * item.quantity,
+            0
+          )}
+        </span>
+      </div>
+      <div className="flex justify-end mt-4">
+        <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mr-4 hover:bg-gray-300">
+          <Link href='/products'>
+            Continue Shopping
+          </Link>
+        </button>
+        <button className="bg-indigo-600 text-white px-4 py-2 rounded-md mr-4 hover:bg-indigo-700">
+          <Link href='/checkout'>
+            Checkout
+          </Link>
+        </button>
+      </div>
+      {/* <CheckoutPage cart={cart}/> */}
+    </div>
+  );
 }
 
-export default page
+export default Cart;

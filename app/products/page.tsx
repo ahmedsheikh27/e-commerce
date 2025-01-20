@@ -1,6 +1,6 @@
 
 'use client'
-import ProductCard from "@/components/navbar/ProductCard";
+import ProductCard from "@/components/ProductCard";
 import { fetchProducts } from "@/lib/hygraph";
 import React, { useEffect, useState } from "react";
 
