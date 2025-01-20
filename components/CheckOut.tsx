@@ -60,7 +60,6 @@ const CheckOut = () => {
                 const orderedCart = await createOrder({ cartId, email, totalPrice });
                 setOrder(orderedCart)
                 console.log('Order created successfully:', orderedCart);
-                alert('Order created successfully!');
             } catch (err: any) {
                 console.error('Error creating order:', err.message);
                 setError(err.message || 'An error occurred while creating the order.');
