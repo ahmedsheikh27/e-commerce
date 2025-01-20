@@ -67,7 +67,7 @@ const CheckOut = () => {
             }
         } else {
             sessionStorage.removeItem('cartId')
-            window.location.href='/products'
+            router.push('/products')
         }
     };
 

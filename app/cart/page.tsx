@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { fetchCartById } from "@/lib/hygraph";
 import Link from "next/link";
 import CartItems from "@/components/CartItems";
-// import CheckoutPage from "../checkout/page";
 
 function Cart() {
   const [cart, setCart] = useState<any>(null);
@@ -23,7 +22,6 @@ function Cart() {
         const fetchedCart: any = await fetchCartById(cartId);
         setCart(fetchedCart);
         console.log("Cart fetched successfully:", fetchedCart);
-        setLoading(false)
       } catch (error) {
         console.error("Error fetching cart:", error);
         setError(error)
@@ -34,16 +32,17 @@ function Cart() {
     getCart();
   }, []);
 
+  if (!cart || !cart.orderItem || cart.orderItem.length === 0) {
+    return <p>No items in the cart.</p>;
+  }
+
+  if (error) return <p className="text-red-500">{error}</p>
+
+
   if (loading) {
     return <p>Loading...</p>;
   }
 
-  if (error) return <p className="text-red-500">{error}</p>
-  const cartId = cart.id;
-
-  if (!cartId || !cart || !cart.orderItem || cart.orderItem.length === 0) {
-    return <p>No items in the cart.</p>;
-  }
 
   return (
 
