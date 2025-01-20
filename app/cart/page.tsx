@@ -3,13 +3,14 @@ import React, { useEffect, useState } from "react";
 import { fetchCartById } from "@/lib/hygraph";
 import Link from "next/link";
 import CartItems from "@/components/CartItems";
+import { useRouter } from "next/navigation";
 
 function Cart() {
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<any>(null);
 
-
+const router = useRouter()
 
   useEffect(() => {
     async function getCart() {
@@ -33,8 +34,18 @@ function Cart() {
   }, []);
 
   if (!cart || !cart.orderItem || cart.orderItem.length === 0) {
-    return <p>No items in the cart.</p>;
-  }
+    return (
+        <div className="flex flex-col items-center justify-center py-10">
+            <p className="text-lg font-medium text-gray-700 mb-4">No items in the cart.</p>
+            <button
+                onClick={() => router.push('/products')}
+                className="px-6 py-3 bg-blue-600 text-white rounded-md text-lg font-medium hover:bg-blue-700"
+            >
+                Go Shopping
+            </button>
+        </div>
+    );
+}
 
   if (error) return <p className="text-red-500">{error}</p>
 

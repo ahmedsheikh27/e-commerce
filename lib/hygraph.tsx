@@ -287,7 +287,7 @@ export const createOrder = async ({cartId, email, totalPrice}:any) => {
     });
 
     return data.createOrder;
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error creating order:", error);
     throw error;
   }

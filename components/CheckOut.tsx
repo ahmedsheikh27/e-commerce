@@ -10,8 +10,9 @@ const CheckOut = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [email, setEmail] = useState<string>(''); // To store user email
     const [error, setError] = useState<any>(null);
+    const [successMessage, setSuccessMessage] = useState<string>(''); // Success message state
 
-    const router = useRouter()
+    const router = useRouter();
 
     useEffect(() => {
         async function getCart() {
@@ -33,7 +34,6 @@ const CheckOut = () => {
         setEmail(e.target.value);
     };
 
-    // Calculate total price from cart items
     const calculateTotalPrice = () => {
         if (!cart || !cart.orderItem) return 0;
         return cart.orderItem.reduce(
@@ -44,8 +44,6 @@ const CheckOut = () => {
     };
 
     const handleSubmit = async () => {
-
-
         if (!email) {
             alert('Please enter an email');
             return;
@@ -53,29 +51,47 @@ const CheckOut = () => {
 
         const cartId = sessionStorage.getItem('cartId');
         const totalPrice = calculateTotalPrice();
-        if (!order) {
-            try {
-                const orderedCart = await createOrder({ cartId, email, totalPrice });
-                setOrder(orderedCart)
-                console.log('Order created successfully:', orderedCart);
-            } catch (err: any) {
-                console.error('Error creating order:', err.message);
-                setError(err.message || 'An error occurred while creating the order.');
-            }
-        } else {
-            sessionStorage.removeItem('cartId')
-            router.push('/products')
+
+        try {
+            // Create order
+            const orderedCart = await createOrder({ cartId, email, totalPrice });
+            setOrder(orderedCart);
+            console.log('Order completed', orderedCart)
+
+            // Remove cartId from session storage
+            sessionStorage.removeItem('cartId');
+
+            // Set success message
+            setSuccessMessage('Order successfully created! Redirecting to products page...');
+            
+            // Navigate to products page after a short delay
+            setTimeout(() => {
+                router.push('/products');
+            }, 3000);
+        } catch (err: any) {
+            console.error('Error creating order:', err.message);
+            setError(err.message || 'An error occurred while creating the order.');
         }
     };
 
-
-
-    if (!cart || !cart.orderItem || cart.orderItem.length === 0) {
-        return <p>No items in the cart.</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
+    
+    if (successMessage) {
+        return (
+            <div className="flex flex-col items-center justify-center py-10">
+                <p className="text-lg font-medium text-green-600">{successMessage}</p>
+                <button
+                    onClick={() => router.push('/products')}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-md text-lg font-medium hover:bg-blue-700">
+                    Go Shopping
+                </button>
+            </div>
+        );
     }
     if (loading) return <p>Loading cart details...</p>;
-    if (error) return <p className="text-red-500">{error}</p>;
-
+    
+                   
+    
 
     return (
         <div className="flex flex-col lg:flex-row w-11/12 max-w-6xl mx-auto my-10 border rounded-lg shadow-lg overflow-hidden">
@@ -109,8 +125,13 @@ const CheckOut = () => {
             {/* Right Section: Payment Form */}
             <div className="flex-1 p-6 bg-white">
                 <h2 className="text-lg font-semibold mb-6">Payment Information</h2>
-                <form className="space-y-4" onSubmit={handleSubmit}>
-                    {/* Email */}
+                <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSubmit();
+                    }}
+                >
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
                             Email
@@ -126,10 +147,10 @@ const CheckOut = () => {
                         />
                     </div>
 
-                    {/* Submit Button */}
                     <button
                         type="submit"
-                        className="w-full py-3 px-4 bg-blue-600 text-white text-lg font-medium rounded-md hover:bg-blue-700">
+                        className="w-full py-3 px-4 bg-blue-600 text-white text-lg font-medium rounded-md hover:bg-blue-700"
+                    >
                         Pay Now
                     </button>
                 </form>
