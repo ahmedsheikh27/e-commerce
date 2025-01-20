@@ -7,8 +7,8 @@ import React, { useEffect, useState } from 'react';
 const CheckOut = () => {
     const [cart, setCart] = useState<any>(null);
     const [order, setOrder] = useState<any>(null);
-    // const [loading, setLoading] = useState<boolean>(true);
-    const [email, setEmail] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
+    const [email, setEmail] = useState<string>(''); // To store user email
     const [error, setError] = useState<any>(null);
 
     const router = useRouter()
@@ -22,6 +22,8 @@ const CheckOut = () => {
                 console.log('Cart fetched successfully:', fetchedCart);
             } catch (error) {
                 console.error('Error fetching cart:', error);
+            } finally {
+                setLoading(false);
             }
         }
         getCart();
@@ -65,8 +67,13 @@ const CheckOut = () => {
             router.push('/products')
         }
     };
-    // 
-    // if (loading) return <p>Loading cart details...</p>;
+
+
+
+    if (!cart || !cart.orderItem || cart.orderItem.length === 0) {
+        return <p>No items in the cart.</p>;
+    }
+    if (loading) return <p>Loading cart details...</p>;
     if (error) return <p className="text-red-500">{error}</p>;
 
 
