@@ -4,6 +4,7 @@ import { removeOrderItem, updateOrderItem } from '@/lib/hygraph';
 import { turborepoTraceAccess } from 'next/dist/build/turborepo-access-trace';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import Loader from './loader/Loader';
 
 
 const CartItems = ({ item }: any) => {
@@ -29,12 +30,12 @@ const CartItems = ({ item }: any) => {
   };
 
   const handleDecrement = async () => {
-    if (quantity <= 1) return; 
+    if (quantity <= 1) return;
     const newQuantity = quantity - 1;
 
     try {
       await updateOrderItem({ id, quantity: newQuantity });
-      setQuantity(newQuantity); 
+      setQuantity(newQuantity);
       setLoading(false)
     } catch (error) {
       console.error("Failed to decrement quantity:", error);
@@ -44,7 +45,7 @@ const CartItems = ({ item }: any) => {
 
   const handleRemove = async () => {
     // if (!confirm('Are you sure you want to remove this item from the cart?')) return;
-  
+
     setRemoving(true);
     try {
       await removeOrderItem(id);
@@ -55,8 +56,10 @@ const CartItems = ({ item }: any) => {
       setRemoving(false);
     }
   };
-  
 
+  // if (loading) {
+  //   return <Loader />
+  // }
 
 
   return (
@@ -77,8 +80,8 @@ const CartItems = ({ item }: any) => {
           {item.orderItemProduct.name}
         </p>
         <button className="flex items-center mt-2 text-gray-400 text-xs hover:text-indigo-600 focus:outline-none"
-        onClick={handleRemove}
-        disabled={removing}>
+          onClick={handleRemove}
+          disabled={removing}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"

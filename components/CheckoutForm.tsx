@@ -7,6 +7,7 @@ import {
     useElements,
 } from "@stripe/react-stripe-js";
 import { createOrder, fetchCartById } from "@/lib/hygraph";
+import Loader from "./loader/Loader";
 
 export default function CheckoutForm() {
     const stripe = useStripe();
@@ -45,31 +46,28 @@ export default function CheckoutForm() {
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
-        
+
         if (!stripe || !elements) {
             return; // Prevent submission if Stripe.js is not ready
         }
-        
-        
+
         if (!email) {
             alert("Please enter an email address.");
             return;
         }
-        
+
         setIsLoading(true);
-        
+
         // Confirm the payment using Stripe
-        
-        const result = await stripe.confirmPayment({
+        const { error, paymentIntent }: any = await stripe.confirmPayment({
             elements,
             confirmParams: {
-                return_url: "http://localhost:3000/payment",
+              return_url: 'http://localhost:3000/payment',
             },
-        });
-
-        if (result.error) {
-            if (result.error.type === "card_error" || result.error.type === "validation_error") {
-                setMessage(result.error.message);
+          });
+        if (error) {
+            if (error.type === "card_error" || error.type === "validation_error") {
+                setMessage(error.message);
             } else {
                 setMessage("An unexpected error occurred.");
             }
@@ -77,8 +75,7 @@ export default function CheckoutForm() {
             return;
         }
 
-        const paymentIntent = result.paymentIntent;
-        // Check if the payment succeeded
+
         if (paymentIntent && paymentIntent.status === "succeeded") {
             const cartId = sessionStorage.getItem("cartId");
             const totalPrice = calculateTotalPrice();
@@ -115,9 +112,10 @@ export default function CheckoutForm() {
         );
     }
 
-    if (!cart) return <p>Loading cart details...</p>;
+    if (!cart) return <Loader />;
 
     return (
+
         <div className="ml-[100px] mt-[50px] mb-10 mr-[100px] shadow-lg rounded-lg">
 
             <div className="flex flex-col lg:flex-row ">
