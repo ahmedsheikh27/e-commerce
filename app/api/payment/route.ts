@@ -1,30 +1,35 @@
-// This is your test secret API key.
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+import Stripe from "stripe";
+import { NextRequest, NextResponse } from "next/server";
 
-const calculateOrderAmount = (item:any) => {
-  // Replace this constant with a calculation of the order's amount
-  // Calculate the order total on the server to prevent
-  // people from directly manipulating the amount on the client
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("Stripe secret key is not set.");
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
+const calculateOrderAmount = (items: any) => {
+  // Replace this with real calculation logic
   return 1400;
 };
 
-export async function POST(req:any, res:any) {
-  const { items } = req.body;
+export async function POST(req: NextRequest) {
+  try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error("Stripe secret key is not set.");
+    }
 
-  // Create a PaymentIntent with the order amount and currency
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: calculateOrderAmount(items),
-    currency: "eur",
-    // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-    automatic_payment_methods: {
-      enabled: true,
-    },
-  });
+    const { items } = await req.json(); // Parse JSON request body
 
-  // res.send({
-  //   clientSecret: paymentIntent.client_secret,
-  // });
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: calculateOrderAmount(items),
+      currency: "eur",
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
 
-  return Response.json({clientSecret: paymentIntent.client_secret, });
-
-};
+    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error: any) {
+    console.error("Error creating payment intent:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

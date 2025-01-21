@@ -12,6 +12,7 @@ import CheckoutForm from "@/components/CheckoutForm";
 // This is your test publishable API key.
 const getStripe = () => {
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  console.log('Stripe Key:', process.env.STRIPE_SECRET_KEY);
 
   if (!stripeKey) {
     console.log('PLease setup project')
