@@ -48,7 +48,7 @@ export default function CheckoutForm() {
         e.preventDefault();
 
         if (!stripe || !elements) {
-            return; // Prevent submission if Stripe.js is not ready
+            return; 
         }
 
         if (!email) {
