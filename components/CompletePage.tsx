@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, JSX } from "react";
 import { useStripe } from "@stripe/react-stripe-js";
 import { useRouter } from "next/navigation";
 
@@ -38,7 +38,9 @@ const ErrorIcon = (
   </svg>
 );
 
-const STATUS_CONTENT_MAP = {
+type PaymentStatus = 'succeeded' | 'processing' | 'requires_payment_method' | 'default';
+
+const STATUS_CONTENT_MAP: Record<PaymentStatus, { text: string; iconColor: string; icon: JSX.Element }> = {
   succeeded: {
     text: "Payment succeeded",
     iconColor: "bg-green-500",
@@ -65,7 +67,7 @@ export default function CompletePage() {
   const stripe = useStripe();
   const router = useRouter();
 
-  const [status, setStatus] = useState<string>("default");
+  const [status, setStatus] = useState<PaymentStatus>("default");
   const [intentId, setIntentId] = useState<string | null>(null);
 
   useEffect(() => {

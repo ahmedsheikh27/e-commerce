@@ -26,10 +26,11 @@ export default function StripeForm() {
 
   useEffect(() => {
     // Create PaymentIntent as soon as the page loads
+    const cartId = sessionStorage.getItem('cartId')
     fetch("/api/payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: [{ id: "xl-tshirt" }] }),
+      body: JSON.stringify({ items: [{ id: cartId}] }),
     })
       .then((res) => res.json())
       .then((data) => setClientSecret(data.clientSecret));

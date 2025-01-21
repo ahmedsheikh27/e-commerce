@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
     PaymentElement,
     useStripe,
-    useElements
+    useElements,
 } from "@stripe/react-stripe-js";
 import { createOrder, fetchCartById } from "@/lib/hygraph";
 
@@ -45,29 +45,31 @@ export default function CheckoutForm() {
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
-
+        
         if (!stripe || !elements) {
             return; // Prevent submission if Stripe.js is not ready
         }
-
+        
+        
         if (!email) {
             alert("Please enter an email address.");
             return;
         }
-
+        
         setIsLoading(true);
-
+        
         // Confirm the payment using Stripe
-        const { error, PaymentIntent } = await stripe.confirmPayment({
+        
+        const result = await stripe.confirmPayment({
             elements,
             confirmParams: {
                 return_url: "http://localhost:3000/payment",
             },
         });
 
-        if (error) {
-            if (error.type === "card_error" || error.type === "validation_error") {
-                setMessage(error.message);
+        if (result.error) {
+            if (result.error.type === "card_error" || result.error.type === "validation_error") {
+                setMessage(result.error.message);
             } else {
                 setMessage("An unexpected error occurred.");
             }
@@ -75,8 +77,9 @@ export default function CheckoutForm() {
             return;
         }
 
+        const paymentIntent = result.paymentIntent;
         // Check if the payment succeeded
-        if (PaymentIntent && PaymentIntent.status === "succeeded") {
+        if (paymentIntent && paymentIntent.status === "succeeded") {
             const cartId = sessionStorage.getItem("cartId");
             const totalPrice = calculateTotalPrice();
 
@@ -98,7 +101,7 @@ export default function CheckoutForm() {
     };
 
     const paymentElementOptions = {
-        layout: "accordion",
+        layout: "accordion" as const,
     };
 
     if (error) return <p className="text-red-500">{error}</p>;
