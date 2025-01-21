@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import CompletePage from "@/components/CompletePage";
 import CheckoutForm from "@/components/CheckoutForm";
@@ -11,8 +11,8 @@ import CheckoutForm from "@/components/CheckoutForm";
 // recreating the Stripe object on every render.
 // This is your test publishable API key.
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-: Promise.reject(new Error("Missing Stripe Publishable Key"));
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : Promise.reject(new Error("Missing Stripe Publishable Key"));
 
 export default function StripeForm() {
   const [clientSecret, setClientSecret] = useState<any>("");
@@ -35,12 +35,11 @@ export default function StripeForm() {
       .then((data) => setClientSecret(data.clientSecret));
   }, []);
 
-  const appearance = {
-    theme: 'stripe',
-  };
-  const options = {
-    clientSecret,
-    appearance,
+  const options: StripeElementsOptions = {
+    clientSecret: clientSecret, // Replace `any` with the appropriate type if needed
+    appearance: {
+      theme: "stripe", // Ensure this is one of the allowed values
+    },
   };
 
   return (
@@ -50,6 +49,7 @@ export default function StripeForm() {
           {confirmed ? <CompletePage /> : <CheckoutForm />}
         </Elements>
       )}
+
     </div>
   );
 }

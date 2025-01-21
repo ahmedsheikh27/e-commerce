@@ -6,7 +6,6 @@ import {
     useStripe,
     useElements
 } from "@stripe/react-stripe-js";
-import { useRouter } from "next/navigation";
 import { createOrder, fetchCartById } from "@/lib/hygraph";
 
 export default function CheckoutForm() {
@@ -20,7 +19,6 @@ export default function CheckoutForm() {
     const [error, setError] = useState<any>(null);
     const [successMessage, setSuccessMessage] = useState<string>(""); // Success message state
 
-    const router = useRouter();
 
     useEffect(() => {
         async function getCart() {
