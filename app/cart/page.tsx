@@ -83,7 +83,7 @@ const router = useRouter()
           </Link>
         </button>
         <button className="bg-indigo-600 text-white px-4 py-2 rounded-md mr-4 hover:bg-indigo-700">
-          <Link href='/checkout'>
+          <Link href='/payment'>
             Checkout
           </Link>
         </button>

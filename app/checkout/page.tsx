@@ -1,11 +1,10 @@
 "use client";
-import CheckOut from "@/components/CheckOut";
 
 const CheckoutPage = () => {
 
   return (
     <div>
-          <CheckOut  />
+      checkout
     </div>
   );
 };
