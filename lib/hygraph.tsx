@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 
 export const client = new ApolloClient({
-  uri: "https://ap-south-1.cdn.hygraph.com/content/cm4l3i0i601mk07ush0h2o6fy/master",
+  uri:  process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT,
   cache: new InMemoryCache(),
 });
 
