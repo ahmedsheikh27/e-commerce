@@ -1,34 +1,41 @@
-import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("STRIPE_SECRET_KEY is not defined in environment variables.");
+}
 
-const STRIPE_SECRET_KEY='sk_test_51QjIDwHQRBycmse2464pGLC0IOR1rkamj41pDT7MlYgNzPg0f0wr5VNM6tuBrhG5thKP4QNIK0wHZBVf8drEWPj2003MjPxdcF'
-const stripe = new Stripe(STRIPE_SECRET_KEY);
+// Initialize Stripe with the secret key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const calculateOrderAmount = (items: any) => {
-  // Replace this with real calculation logic
-  return 1500;
-};
-
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error("Stripe secret key is not set.");
+    // Parse the JSON body from the request
+    const { amount } = await request.json();
+
+    if (!amount || typeof amount !== "number" || amount <= 0) {
+      return NextResponse.json(
+        { error: "Invalid amount. It must be a positive number." },
+        { status: 400 }
+      );
     }
 
-    const { items } = await req.json(); // Parse JSON request body
-
+    // Create a payment intent with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: calculateOrderAmount(items),
-      currency: "eur",
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      amount,
+      currency: "usd",
+      automatic_payment_methods: { enabled: true },
     });
 
+    // Return the client secret for use in the client
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
   } catch (error: any) {
     console.error("Error creating payment intent:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Return a 500 Internal Server Error response
+    return NextResponse.json(
+      { error: `Internal Server Error: ${error.message}` },
+      { status: 500 }
+    );
   }
 }

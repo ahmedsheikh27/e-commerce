@@ -1,67 +1,113 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import CompletePage from "@/components/CompletePage";
 import CheckoutForm from "@/components/CheckoutForm";
+import convertToSubcurrency from "@/lib/convertToSubcurrency";
+import { fetchCartById } from "@/lib/hygraph";
 
-
-// Make sure to call loadStripe outside of a component’s render to avoid
-// recreating the Stripe object on every render.
-// This is your test publishable API key.
 const getStripe = () => {
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-  console.log('Stripe Key:', process.env.STRIPE_SECRET_KEY);
 
   if (!stripeKey) {
-    console.log('PLease setup project')
     throw new Error(
-      'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. Please provide a valid publishable key in your environment variables.'
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. Please provide a valid key."
     );
   }
 
   return loadStripe(stripeKey);
 };
-const stripePromise = getStripe()
+const stripePromise = getStripe();
 
 export default function StripeForm() {
-  const [clientSecret, setClientSecret] = useState<any>("");
-  const [confirmed, setConfirmed] = useState<any>(false);
+  const [amount, setAmount] = useState<number | null>(null);
+  const [confirmed, setConfirmed] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  // const [cart, setCart] = useState<any>(null);
+  // const [amount, setAmount] = useState<number | null>(null);
 
   useEffect(() => {
-    setConfirmed(new URLSearchParams(window.location.search).get(
+    const clientSecret = new URLSearchParams(window.location.search).get(
       "payment_intent_client_secret"
-    ));
-  });
-
-  useEffect(() => {
-    // Create PaymentIntent as soon as the page loads
-    const cartId = sessionStorage.getItem('cartId')
-    fetch("/api/payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: [{ id: cartId}] }),
-    })
-      .then((res) => res.json())
-      .then((data) => setClientSecret(data.clientSecret));
+    );
+    setConfirmed(Boolean(clientSecret));
   }, []);
 
-  const options: StripeElementsOptions = {
-    clientSecret: clientSecret, // Replace `any` with the appropriate type if needed
-    appearance: {
-      theme: "stripe", // Ensure this is one of the allowed values
-    },
+  // Function to calculate total price
+  const calculateTotalAmount = async () => {
+    const cartId = sessionStorage.getItem("cartId");
+    if (!cartId) {
+      console.error("No cart ID found in session storage.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const fetchedCart = await fetchCartById(cartId);
+      if (!fetchedCart || !fetchedCart.orderItem) {
+        console.error("Invalid cart data.");
+        setLoading(false);
+        return;
+      }
+
+      // Calculate total price
+      const totalPrice = fetchedCart.orderItem.reduce(
+        (total: number, item: any) =>
+          total + item.orderItemProduct.price * item.quantity,
+        0
+      );
+      setAmount(totalPrice);
+    } catch (error) {
+      console.error("Error fetching cart or calculating total price:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Fetch cart and calculate amount on mount
+  useEffect(() => {
+    calculateTotalAmount();
+  }, []);
+
 
   return (
     <div className="App">
-      {clientSecret && (
-        <Elements options={options} stripe={stripePromise}>
-          {confirmed ? <CompletePage /> : <CheckoutForm />}
+      {amount !== null ? (
+        <Elements
+          stripe={stripePromise}
+          options={{
+            mode: "payment",
+            amount: convertToSubcurrency(amount),
+            currency: "usd",
+          }}
+        >
+          {confirmed ? <CompletePage /> : <CheckoutForm amount={amount} />}
         </Elements>
-      )}
+      ) : (
+        <div className="flex flex-col items-center justify-center p-6 max-w-sm mx-auto bg-white rounded-xl shadow-md space-y-4 text-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-12 w-12 text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13 16h-1v-4h-1m0-4h.01M12 18.354l-.354-.354m0 0a9 9 0 1110.708-10.708 9 9 0 01-10.708 10.708z"
+            />
+          </svg>
+          <h2 className="text-lg font-semibold text-gray-800">Something Went Wrong</h2>
+          <p className="text-gray-500">
+            An error occurred while processing your request. Please try again later.
+          </p>
+        </div>
 
+      )}
     </div>
   );
 }
