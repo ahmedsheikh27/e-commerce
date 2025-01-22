@@ -1,14 +1,13 @@
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("Stripe secret key is not set.");
-}
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
+const STRIPE_SECRET_KEY='sk_test_51QjIDwHQRBycmse2464pGLC0IOR1rkamj41pDT7MlYgNzPg0f0wr5VNM6tuBrhG5thKP4QNIK0wHZBVf8drEWPj2003MjPxdcF'
+const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 const calculateOrderAmount = (items: any) => {
   // Replace this with real calculation logic
-  return 1400;
+  return 1500;
 };
 
 export async function POST(req: NextRequest) {
