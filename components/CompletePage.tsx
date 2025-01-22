@@ -38,7 +38,28 @@ const ErrorIcon = (
   </svg>
 );
 
-type PaymentStatus = 'succeeded' | 'processing' | 'requires_payment_method' | 'default';
+const ProcessingIcon = (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle
+      cx="8"
+      cy="8"
+      r="7"
+      stroke="white"
+      strokeWidth="2"
+      strokeDasharray="44"
+      strokeDashoffset="10"
+    />
+  </svg>
+);
+
+
+type PaymentStatus = 'succeeded' | 'processing' | 'requires_payment_method' ;
 
 const STATUS_CONTENT_MAP: Record<PaymentStatus, { text: string; iconColor: string; icon: JSX.Element }> = {
   succeeded: {
@@ -49,25 +70,25 @@ const STATUS_CONTENT_MAP: Record<PaymentStatus, { text: string; iconColor: strin
   processing: {
     text: "Your payment is processing.",
     iconColor: "bg-gray-500",
-    icon: ErrorIcon,
+    icon: ProcessingIcon,
   },
   requires_payment_method: {
     text: "Payment was not successful, please try again.",
     iconColor: "bg-red-500",
     icon: ErrorIcon,
   },
-  default: {
-    text: "Something went wrong, please try again.",
-    iconColor: "bg-red-500",
-    icon: ErrorIcon,
-  },
+  // default: {
+  //   text: "Something went wrong, please try again.",
+  //   iconColor: "bg-red-500",
+  //   icon: ProcessingIcon,
+  // },
 };
 
 export default function CompletePage() {
   const stripe = useStripe();
   const router = useRouter();
 
-  const [status, setStatus] = useState<PaymentStatus>("default");
+  const [status, setStatus] = useState<PaymentStatus>("processing");
   const [intentId, setIntentId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -90,6 +111,9 @@ export default function CompletePage() {
   const handleContinueShopping = () => {
     sessionStorage.removeItem("cartId");
     router.push("/products");
+  };
+  const handleTryAgain = () => {
+    router.push("/payment");
   };
 
   return (
@@ -123,18 +147,22 @@ export default function CompletePage() {
             View details
           </a>
         )} */}
-        <button
-          onClick={handleContinueShopping}
-          className="mt-6 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition"
-        >
-          Continue Shopping
-        </button>
-        <a
-          href="/"
-          className="mt-4 inline-block text-gray-500 underline text-sm"
-        >
-          Test another payment
-        </a>
+       {status === "succeeded" && (
+          <button
+            onClick={handleContinueShopping}
+            className="px-6 py-2 text-white bg-green-500 rounded"
+          >
+            Continue Shopping
+          </button>
+        )}
+        {(status === "requires_payment_method") && (
+          <button
+            onClick={handleTryAgain}
+            className="px-6 py-2 text-white bg-red-500 rounded"
+          >
+            Try Again
+          </button>
+        )}
       </div>
     </div>
   );
