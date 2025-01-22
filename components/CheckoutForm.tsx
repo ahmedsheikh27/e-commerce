@@ -90,7 +90,7 @@ export default function CheckoutForm({ amount }: { amount: any }) {
             elements,
             clientSecret: clientSecret!,
             confirmParams: {
-                return_url: "http://localhost:3000/payment",
+                return_url: "https://e-commerce-lake-one-57.vercel.app/payment",
             },
         });
 
