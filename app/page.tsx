@@ -1,7 +1,7 @@
 "use client";
 import ProductPage from "./products/page";
 
-export default function StripeForm() {
+export default function Home() {
 
   return (
     <div className="App">
