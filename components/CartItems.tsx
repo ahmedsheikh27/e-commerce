@@ -1,29 +1,20 @@
 'use client';
 
 import { removeOrderItem, updateOrderItem } from '@/lib/hygraph';
-import { turborepoTraceAccess } from 'next/dist/build/turborepo-access-trace';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import Loader from './loader/Loader';
 
-
-const CartItems = ({ item }: any) => {
-
-  const router = useRouter()
-
+const CartItems = ({ item, onItemUpdate }: {item: any, onItemUpdate: () => void}) => {
+  const router = useRouter();
   const [quantity, setQuantity] = useState<number>(item.quantity);
-  const [removing, setRemoving] = useState<any>(false);
-  const [loading, setLoading] = useState<boolean>(true)
-
-  const id = item.id;
+  const [removing, setRemoving] = useState<boolean>(false);
 
   const handleIncrement = async () => {
     const newQuantity = quantity + 1;
-
     try {
-      await updateOrderItem({ id, quantity: newQuantity });
+      await updateOrderItem({ id: item.id, quantity: newQuantity });
       setQuantity(newQuantity);
-      setLoading(false)
+      onItemUpdate();
     } catch (error) {
       console.error("Failed to increment quantity:", error);
     }
@@ -32,24 +23,20 @@ const CartItems = ({ item }: any) => {
   const handleDecrement = async () => {
     if (quantity <= 1) return;
     const newQuantity = quantity - 1;
-
     try {
-      await updateOrderItem({ id, quantity: newQuantity });
+      await updateOrderItem({ id: item.id, quantity: newQuantity });
       setQuantity(newQuantity);
-      setLoading(false)
+      onItemUpdate();
     } catch (error) {
       console.error("Failed to decrement quantity:", error);
     }
   };
 
-
   const handleRemove = async () => {
-    // if (!confirm('Are you sure you want to remove this item from the cart?')) return;
-
     setRemoving(true);
     try {
-      await removeOrderItem(id);
-      router.refresh()
+      await removeOrderItem(item.id);
+      onItemUpdate();
     } catch (error) {
       console.error('Failed to remove item:', error);
     } finally {
@@ -57,13 +44,9 @@ const CartItems = ({ item }: any) => {
     }
   };
 
-  // if (loading) {
-  //   return <Loader />
-  // }
-
-
   return (
     <div className="flex items-center p-4 bg-gray-50 rounded-lg shadow-md mb-4 m-5">
+      {/* Existing component code remains the same */}
       {/* Product Image */}
       <div className="flex-shrink-0 h-16 w-16 md:h-20 md:w-20 rounded-lg bg-gray-100 p-1 mr-4">
         <img
@@ -79,9 +62,11 @@ const CartItems = ({ item }: any) => {
         <p className="block text-gray-800 font-medium text-sm md:text-base hover:underline">
           {item.orderItemProduct.name}
         </p>
-        <button className="flex items-center mt-2 text-gray-400 text-xs hover:text-indigo-600 focus:outline-none"
+        <button
+          className="flex items-center mt-2 text-gray-400 text-xs hover:text-indigo-600 focus:outline-none"
           onClick={handleRemove}
-          disabled={removing}>
+          disabled={removing}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -145,7 +130,7 @@ const CartItems = ({ item }: any) => {
       {/* Product Price */}
       <div className="text-right">
         <p className="text-gray-800 font-medium">
-          ${item.orderItemProduct.price * item.quantity}
+          ${item.orderItemProduct.price * quantity}
         </p>
         <p className="text-gray-500 text-sm">
           ${item.orderItemProduct.price} each

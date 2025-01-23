@@ -7,6 +7,7 @@ import CompletePage from "@/components/CompletePage";
 import CheckoutForm from "@/components/CheckoutForm";
 import convertToSubcurrency from "@/lib/convertToSubcurrency";
 import { fetchCartById } from "@/lib/hygraph";
+import { useRouter } from "next/navigation";
 
 const getStripe = () => {
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -25,8 +26,8 @@ export default function StripeForm() {
   const [amount, setAmount] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  // const [cart, setCart] = useState<any>(null);
-  // const [amount, setAmount] = useState<number | null>(null);
+
+  const router = useRouter()
 
   useEffect(() => {
     const clientSecret = new URLSearchParams(window.location.search).get(
@@ -66,11 +67,13 @@ export default function StripeForm() {
     }
   };
 
-  // Fetch cart and calculate amount on mount
   useEffect(() => {
     calculateTotalAmount();
   }, []);
 
+  const handleTryAgain = () => {
+    router.push("/payment");
+  };
 
   return (
     <div className="App">
@@ -104,6 +107,12 @@ export default function StripeForm() {
           <h2 className="text-lg font-semibold text-gray-800">Something Went Wrong</h2>
           <p className="text-gray-500">
             An error occurred while processing your request. Please try again later.
+          <button
+            onClick={handleTryAgain}
+            className="px-6 py-2 text-white bg-red-500 rounded"
+          >
+            Try Again
+          </button>
           </p>
         </div>
 
