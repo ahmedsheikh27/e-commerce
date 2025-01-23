@@ -58,10 +58,8 @@ function Cart() {
           <CartItems 
             key={index} 
             item={item} 
-            onItemUpdate={() => {
-              // Function to refresh cart, like re-fetching cart data
-              fetchCart()
-            }} 
+            onItemUpdate={
+              fetchCart} 
           />
         ))}
       </div>
