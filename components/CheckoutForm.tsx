@@ -86,11 +86,11 @@ export default function CheckoutForm({ amount }: { amount: any }) {
         }
 
         // Confirm the payment
-        const { error, paymentIntent }:any = await stripe.confirmPayment({
+        const { error, paymentIntent }: any = await stripe.confirmPayment({
             elements,
             clientSecret: clientSecret!,
             confirmParams: {
-                return_url: "https://e-commerce-lake-one-57.vercel.app/payment",
+                return_url: process.env.NEXT_PUBLIC_BSE_URL || "http://e-commerce-lake-one-57.vercel.app",
             },
         });
 
@@ -145,72 +145,80 @@ export default function CheckoutForm({ amount }: { amount: any }) {
     }
 
     return (
-        <div className="ml-[100px] mt-[50px] mb-10 mr-[100px] shadow-lg rounded-lg">
-            <div className="flex flex-col lg:flex-row">
-                {/* Left Section: Product Summary */}
-                <div className="lg:w-3/5 w-full p-4 bg-gray-100 rounded-md">
-                    <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-                    {cart?.orderItem?.map((item: any, index: number) => (
-                        <div
-                            className="flex items-center justify-between mb-6 pb-4 border-b"
-                            key={index}
-                        >
-                            <img
-                                src={item.orderItemProduct.productImage.url}
-                                alt={item.orderItemProduct.name}
-                                className="w-12 h-12 object-cover rounded"
-                            />
-                            <div className="flex-1 ml-4">
-                                <p className="text-sm font-medium">{item.orderItemProduct.name}</p>
-                                <p className="text-sm text-gray-500 truncate">
-                                    {item.orderItemProduct.description}
-                                </p>
-                                <p className="text-sm text-black">Qty: {item.quantity}</p>
+        <div className="px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-4xl mx-auto shadow-lg rounded-lg">
+                <div className="flex flex-col lg:flex-row">
+                    {/* Left Section: Product Summary */}
+                    <div className="lg:w-3/5 w-full p-4 bg-gray-100 rounded-md">
+                        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                        {cart?.orderItem?.map((item: any, index: number) => (
+                            <div
+                                className="flex items-center justify-between mb-6 pb-4 border-b"
+                                key={index}
+                            >
+                                <img
+                                    src={item.orderItemProduct.productImage.url}
+                                    alt={item.orderItemProduct.name}
+                                    className="w-12 h-12 object-cover rounded "
+                                />
+                                <div className="flex-1 ml-2 sm:ml-4">
+                                    <p className="text-sm font-medium truncate max-w-[200px]">
+                                        {item.orderItemProduct.name}
+                                    </p>
+                                    <p className="text-sm text-gray-500 truncate max-w-[200px] sm:block hidden">
+                                        {item.orderItemProduct.description}
+                                    </p>
+                                    <p className="text-sm text-black">Qty: {item.quantity}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm font-bold">${item.orderItemProduct.price}</p>
+                                    <p className="text-sm text-gray-500 sm:block hidden">
+                                        ${item.orderItemProduct.price} each
+                                    </p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm font-bold">${item.orderItemProduct.price}</p>
-                                <p className="text-sm text-gray-500">
-                                    ${item.orderItemProduct.price} each
-                                </p>
-                            </div>
+                        ))}
+                        <div className="flex justify-between font-medium text-lg mt-6">
+                            <span>Total:</span>
+                            <span>${calculateTotalPrice()}</span>
                         </div>
-                    ))}
-                    <div className="flex justify-between font-medium text-lg mt-6">
-                        <span>Total:</span>
-                        <span>${calculateTotalPrice()}</span>
+                    </div>
+
+                    {/* Right Section: Payment Form */}
+                    <div className="lg:w-2/5 w-full p-4">
+                        <form onSubmit={handleSubmit} className="bg-white rounded-md">
+                            <div className="space-y-4">
+                                <div>
+                                    <label
+                                        className="block text-sm font-medium text-gray-700 mb-1"
+                                        htmlFor="email"
+                                    >
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter your email"
+                                    />
+                                </div>
+                                {clientSecret && <PaymentElement />}
+
+                                {message && <div className="text-red-500">{message}</div>}
+
+                                <button
+                                    disabled={!stripe || isLoading}
+                                    className="text-white w-full p-3 bg-black rounded-md font-bold disabled:opacity-50"
+                                >
+                                    {!isLoading ? `Pay $${amount}` : "Processing..."}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-                {/* Right Section: Payment Form */}
-                <form onSubmit={handleSubmit} className="bg-white p-4 rounded-md w-full">
-                    <div>
-                        <label
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                            htmlFor="email"
-                        >
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full px-4 mb-5 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Enter your email"
-                        />
-                    </div>
-                    {clientSecret && <PaymentElement />}
-
-                    {message && <div className="mt-2 text-red-500">{message}</div>}
-
-                    <button
-                        disabled={!stripe || isLoading}
-                        className="text-white w-full p-3 bg-black mt-4 rounded-md font-bold disabled:opacity-50"
-                    >
-                        {!isLoading ? `Pay $${amount}` : "Processing..."}
-                    </button>
-                </form>
             </div>
         </div>
     );
