@@ -1,32 +1,12 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import Link from "next/link";
 import CartItems from "@/components/CartItems";
-import { fetchCartById } from "@/lib/hygraph";
+import { useCartContext } from "@/context/CartContext";
 
 function Cart() {
-  const [cart, setCart] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<any>(null);
+ const {  loading,error,cart} = useCartContext()
 
-  const fetchCart = async () => {
-    try {
-      const cartId = sessionStorage.getItem("cartId");
-      if (cartId) {
-        const fetchedCart: any = await fetchCartById(cartId);
-        setCart(fetchedCart);
-      }
-    } catch (error) {
-      console.error("Cart Fetch Error:", error);
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
 
   if (loading) return <p>Loading....</p>;
   if (error) return <p className="text-red-500">Cart Error: {error.message}</p>;
@@ -57,9 +37,7 @@ function Cart() {
         {cart.orderItem.map((item:any, index:number) => (
           <CartItems 
             key={index} 
-            item={item} 
-            onItemUpdate={
-              fetchCart} 
+            item={item}
           />
         ))}
       </div>

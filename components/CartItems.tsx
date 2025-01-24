@@ -1,10 +1,13 @@
 'use client';
 
+import { useCartContext } from '@/context/CartContext';
 import { removeOrderItem, updateOrderItem } from '@/lib/hygraph';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-const CartItems = ({ item, onItemUpdate }: {item: any, onItemUpdate: () => void}) => {
+const CartItems = ({ item }: { item: any }) => {
+
+  const { fetchCart: onItemUpdate } = useCartContext()
   const router = useRouter();
   const [quantity, setQuantity] = useState<number>(item.quantity);
   const [removing, setRemoving] = useState<boolean>(false);
@@ -14,7 +17,7 @@ const CartItems = ({ item, onItemUpdate }: {item: any, onItemUpdate: () => void}
     try {
       await updateOrderItem({ id: item.id, quantity: newQuantity });
       setQuantity(newQuantity);
-      onItemUpdate();
+      await onItemUpdate();
     } catch (error) {
       console.error("Failed to increment quantity:", error);
     }
@@ -26,7 +29,7 @@ const CartItems = ({ item, onItemUpdate }: {item: any, onItemUpdate: () => void}
     try {
       await updateOrderItem({ id: item.id, quantity: newQuantity });
       setQuantity(newQuantity);
-      onItemUpdate();
+      await onItemUpdate();
     } catch (error) {
       console.error("Failed to decrement quantity:", error);
     }
@@ -35,14 +38,17 @@ const CartItems = ({ item, onItemUpdate }: {item: any, onItemUpdate: () => void}
   const handleRemove = async () => {
     setRemoving(true);
     try {
-      await removeOrderItem(item.id);
-      onItemUpdate();
+      removeOrderItem(item.id)//.then(res => onItemUpdate());
+       await onItemUpdate();
     } catch (error) {
       console.error('Failed to remove item:', error);
     } finally {
       setRemoving(false);
     }
   };
+
+  // const value = useCartContext()
+  // console.log({ value })
 
   return (
     <div className="flex items-center p-4 bg-gray-50 rounded-lg shadow-md mb-4 m-5">
