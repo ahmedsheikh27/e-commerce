@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
+import CartContextProvider from "@/context/CartContext";
 // import { CartProvider } from "@/context/CartProvider";
 
 
@@ -14,8 +15,10 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
     <html lang="en">
       <body
         className={`antialiased`}>
-        <Navbar />
-        {children}
+        <CartContextProvider>
+          <Navbar />
+          {children}
+        </CartContextProvider>
       </body>
     </html>
   );
